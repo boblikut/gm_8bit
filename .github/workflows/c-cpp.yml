@@ -9,8 +9,8 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
       with:
         submodules: recursive
         repository: danielga/garrysmod_common
@@ -27,7 +27,7 @@ jobs:
       run: |
         cd projects/windows/vs2019
         & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe" /p:Configuration=ReleaseWithSymbols /p:Platform=Win32 eightbit.sln
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: gmsv_eightbit_windows.dll
         path: projects/windows/vs2019/x86/ReleaseWithSymbols/gmsv_eightbit_win32.dll
@@ -35,7 +35,7 @@ jobs:
       run: |
         cd projects/windows/vs2019
         & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe" /p:Configuration=ReleaseWithSymbols /p:Platform=x64 eightbit.sln
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: gmsv_eightbit_win64.dll
         path: projects/windows/vs2019/x86_64/ReleaseWithSymbols/gmsv_eightbit_win64.dll
