@@ -101,18 +101,11 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		#endif
 
 		//Apply audio effect
-		int eff = std::get<1>(afflicted_players.at(uid));
-		switch (eff) {
-		case AudioEffects::EFF_BITCRUSH:
-			AudioEffects::BitCrush((uint16_t*)&decompressedBuffer, samples, g_eightbit->crushFactor, g_eightbit->gainFactor);
-			break;
-		case AudioEffects::EFF_DESAMPLE:
-			AudioEffects::Desample((uint16_t*)&decompressedBuffer, samples, g_eightbit->desampleRate);
-			break;
-		case AudioEffects::EFF_REVERB:
-			AudioEffects::Reverb((uint16_t*)&decompressedBuffer, samples);
-		default:
-			break;
+		std::vector<Effects> effs = std::get<1>(afflicted_players.at(uid));
+		std::map<Effects, function<uint16_t*, int, std::vector<float>>> eff_funcs = g_eightbit->effects_functions;
+		for (int i = 0; i < effs.size - 1; i++){
+			Effect eff = effs.at(i);
+			eff_funcs[eff.eff_id]((uint16_t*)&decompressedBuffer, samples, eff.eff_args);
 		}
 
 		//Recompress the stream
@@ -170,8 +163,24 @@ LUA_FUNCTION_STATIC(eightbit_setdesamplerate) {
 }
 
 LUA_FUNCTION_STATIC(eightbit_enableEffect) {
-	int id = LUA->GetNumber(1);
-	int eff = LUA->GetNumber(2);
+	std::vector<Effects> effs;
+	std::vector<float> eff_args;
+	LUA->CheckType(1, Type::Table);
+	LUA->PushNil();
+
+	while (LUA->Next(-2)) {
+		int eff = LUA->GetNumber(-2);
+		LUA->PushNil();
+		eff_args.clear();
+        while (LUA->Next(-3)) {
+            eff_args.push(LUA->GetNumber(-1));
+            LUA->Pop(1);
+        }
+        effs.push({eff, eff_args});
+        LUA->Pop(1);
+	}
+
+	LUA->Pop();
 
 	auto& afflicted_players = g_eightbit->afflictedPlayers;
 	if (afflicted_players.find(id) != afflicted_players.end()) {
@@ -181,7 +190,7 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 			afflicted_players.erase(id);
 		}
 		else {
-			std::get<1>(afflicted_players.at(id)) = eff;
+			std::get<1>(afflicted_players.at(id)) = effs;
 		}
 		return 0;
 	}
@@ -189,7 +198,7 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 
 		IVoiceCodec* codec = new SteamOpus::Opus_FrameDecoder();
 		codec->Init(5, 24000);
-		afflicted_players.insert(std::pair<int, std::tuple<IVoiceCodec*, int>>(id, std::tuple<IVoiceCodec*, int>(codec, eff)));
+		afflicted_players.insert(std::pair<int, std::tuple<IVoiceCodec*, int>>(id, std::tuple<IVoiceCodec*, int>(codec, effs)));
 	}
 	return 0;
 }
