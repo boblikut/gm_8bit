@@ -110,7 +110,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 			AudioEffects::Desample((uint16_t*)&decompressedBuffer, samples, g_eightbit->desampleRate);
 			break;
 		case AudioEffects::EFF_REVERB:
-			AudioEffects::GasMask((uint16_t*)&decompressedBuffer, samples);
+			AudioEffects::Reverb((uint16_t*)&decompressedBuffer, samples);
 		default:
 			break;
 		}
