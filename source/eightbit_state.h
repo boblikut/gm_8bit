@@ -4,7 +4,7 @@
 #include "audio_effects.h"
 
 struct Effect {
-	AudioEffect eff_id;
+	int eff_id;
 	std::vector<float> eff_args;
 };
 
