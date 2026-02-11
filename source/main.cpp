@@ -109,7 +109,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		case AudioEffects::EFF_DESAMPLE:
 			AudioEffects::Desample((uint16_t*)&decompressedBuffer, samples, g_eightbit->desampleRate);
 			break;
-		case AudioEffects::EFF_GASMASK:
+		case AudioEffects::EFF_REVERB:
 			AudioEffects::GasMask((uint16_t*)&decompressedBuffer, samples);
 		default:
 			break;
@@ -266,8 +266,8 @@ GMOD_MODULE_OPEN()
 		LUA->PushNumber(AudioEffects::EFF_BITCRUSH);
 		LUA->SetTable(-3);
 
-		LUA->PushString("EFF_GASMASK");
-		LUA->PushNumber(AudioEffects::EFF_GASMASK);
+		LUA->PushString("EFF_REVERB");
+		LUA->PushNumber(AudioEffects::EFF_REVERB);
 		LUA->SetTable(-3);
 	LUA->SetTable(-3);
 	LUA->Pop();
