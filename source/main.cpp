@@ -267,7 +267,7 @@ GMOD_MODULE_OPEN()
 		LUA->SetTable(-3);
 
 		LUA->PushString("EFF_GASMASK");
-		LUA->PushNumber(AudioEffects::EFF_BITCRUSH);
+		LUA->PushNumber(AudioEffects::EFF_GASMASK);
 		LUA->SetTable(-3);
 	LUA->SetTable(-3);
 	LUA->Pop();
