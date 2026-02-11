@@ -163,7 +163,7 @@ LUA_FUNCTION_STATIC(eightbit_setdesamplerate) {
 }
 
 LUA_FUNCTION_STATIC(eightbit_enableEffect) {
-	std::vector<Effects> effs;
+	std::vector<Effect> effs;
 	std::vector<float> eff_args;
 	LUA->CheckType(1, Type::Table);
 	LUA->PushNil();
