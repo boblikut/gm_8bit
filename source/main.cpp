@@ -265,6 +265,10 @@ GMOD_MODULE_OPEN()
 		LUA->PushString("EFF_BITCRUSH");
 		LUA->PushNumber(AudioEffects::EFF_BITCRUSH);
 		LUA->SetTable(-3);
+
+		LUA->PushString("EFF_GASMASK");
+		LUA->PushNumber(AudioEffects::EFF_BITCRUSH);
+		LUA->SetTable(-3);
 	LUA->SetTable(-3);
 	LUA->Pop();
 
