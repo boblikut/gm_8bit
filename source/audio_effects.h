@@ -11,7 +11,7 @@ namespace AudioEffects {
 		EFF_REVERB
 	};
 
-	void BitCrush(uint16_t* sampleBuffer, int& samples, std::vector<float> args) {
+	void BitCrush(uint16_t* sampleBuffer, int samples, std::vector<float> args) {
 		for (int i = 0; i < samples; i++) {
 			//Signed shorts range from -32768 to 32767
 			//Let's quantize that a bit
@@ -38,7 +38,7 @@ namespace AudioEffects {
 	}
 
 	static uint16_t processedBuffer[10 * 1024];
-	void Reverb(uint16_t* sampleBuffer, int& samples, std::vector<float> args) {
+	void Reverb(uint16_t* sampleBuffer, int samples, std::vector<float> args) {
 	    const int DELAY_SAMPLES = samples * args.at(0);
 	    const float FEEDBACK = args.at(1);
 	    const float WET_DRY_MIX = args.at(2);
