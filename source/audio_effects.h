@@ -25,10 +25,10 @@ namespace AudioEffects {
 
 	static uint16_t tempBuf[10 * 1024];
 	void Desample(uint16_t* inBuffer, int& samples, std::vector<float> args) {
-		assert(samples / args.at(0) + 1 <= sizeof(tempBuf));
+		assert(samples / (int)args.at(0) + 1 <= sizeof(tempBuf));
 		int outIdx = 0;
 		for (int i = 0; i < samples; i++) {
-			if (i % args.at(0) == 0) continue;
+			if (i % (int)args.at(0) == 0) continue;
 
 			tempBuf[outIdx] = inBuffer[i];
 			outIdx++;
