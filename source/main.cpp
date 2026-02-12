@@ -185,7 +185,7 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 
 	auto& afflicted_players = g_eightbit->afflictedPlayers;
 	if (afflicted_players.find(id) != afflicted_players.end()) {
-		if (eff == AudioEffects::EFF_NONE) {
+		if (effs.size() == 1 && effs.at(0).eff_id == AudioEffects::EFF_NONE) {
 			IVoiceCodec* codec = std::get<0>(afflicted_players.at(id));
 			delete codec;
 			afflicted_players.erase(id);
