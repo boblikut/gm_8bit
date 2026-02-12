@@ -102,8 +102,8 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 
 		//Apply audio effect
 		std::vector<Effect> effs = std::get<1>(afflicted_players.at(uid));
-		std::unordered_map<AudioEffects, function<uint16_t*, int, std::vector<float>>> eff_funcs = g_eightbit->effects_functions;
-		for (int i = 0; i < effs.size - 1; i++){
+		std::unordered_map<int, function<uint16_t*, int, std::vector<float>>> eff_funcs = g_eightbit->effects_functions;
+		for (int i = 0; i < effs.size() - 1; i++){
 			Effect eff = effs.at(i);
 			eff_funcs[eff.eff_id]((uint16_t*)&decompressedBuffer, samples, eff.eff_args);
 		}
