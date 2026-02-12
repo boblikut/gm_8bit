@@ -165,7 +165,7 @@ LUA_FUNCTION_STATIC(eightbit_setdesamplerate) {
 LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 	std::vector<Effect> effs;
 	std::vector<float> eff_args;
-	LUA->CheckType(1, Type::Table);
+	int id = LUA->GetNumber(1);
 	LUA->PushNil();
 
 	while (LUA->Next(-2)) {
@@ -173,10 +173,10 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 		LUA->PushNil();
 		eff_args.clear();
         while (LUA->Next(-3)) {
-            eff_args.push(LUA->GetNumber(-1));
+            eff_args.push_back(LUA->GetNumber(-1));
             LUA->Pop(1);
         }
-        effs.push({eff, eff_args});
+        effs.push_back({eff, eff_args});
         LUA->Pop(1);
 	}
 
