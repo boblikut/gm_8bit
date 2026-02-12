@@ -16,7 +16,7 @@ struct EightbitState {
 	uint16_t port = 4000;
 	std::string ip = "127.0.0.1";
 	std::unordered_map<int, std::tuple<IVoiceCodec*, std::vector<Effect>>> afflictedPlayers;
-	std::unordered_map<AudioEffects, function<uint16_t*, int, std::vector<float>>> operations = {
+	std::unordered_map<int, function<void(uint16_t*, int, std::vector<float>)>> effects_functions = {
 	    {AudioEffects::EFF_BITCRUSH, AudioEffects::BitCrush},
 	    {AudioEffects::EFF_DESAMPLE, AudioEffects::Desample},
 		{AudioEffects::EFF_REVERB, AudioEffects::Reverb}
