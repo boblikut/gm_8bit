@@ -173,7 +173,7 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 		eff = LUA->GetNumber(-2);
 		LUA->PushNil();
 		eff_args.clear();
-        while (LUA->Next(-3)) {
+        while (LUA->Next(-2)) {
             eff_args.push_back(LUA->GetNumber(-1));
             LUA->Pop(1);
         }
