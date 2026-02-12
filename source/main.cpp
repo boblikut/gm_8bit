@@ -199,7 +199,7 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 
 		IVoiceCodec* codec = new SteamOpus::Opus_FrameDecoder();
 		codec->Init(5, 24000);
-		afflicted_players.insert(std::pair<int, std::tuple<IVoiceCodec*, int>>(id, std::tuple<IVoiceCodec*, int>(codec, effs)));
+		afflicted_players.insert(std::pair<int, std::tuple<IVoiceCodec*, int>>(id, std::tuple<IVoiceCodec*, Effect>(codec, effs)));
 	}
 	return 0;
 }
