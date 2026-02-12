@@ -105,8 +105,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		std::unordered_map<int, std::function<void(uint16_t*, int&, std::vector<float>)>> eff_funcs = g_eightbit->effects_functions;
 		for (int i = 0; i < effs.size(); i++){
 			Effect eff = effs.at(i);
-			//eff_funcs[eff.eff_id]((uint16_t*)&decompressedBuffer, samples, eff.eff_args);
-			Msg("eff_id: %d; eff_arg: %f;", eff.eff_id, eff.eff_args.at(0));
+			eff_funcs[eff.eff_id]((uint16_t*)&decompressedBuffer, samples, eff.eff_args);
 		}
 		
 		//Recompress the stream
