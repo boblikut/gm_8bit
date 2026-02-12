@@ -102,7 +102,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 
 		//Apply audio effect
 		std::vector<Effect> effs = std::get<1>(afflicted_players.at(uid));
-		std::unordered_map<int, function<uint16_t*, int, std::vector<float>>> eff_funcs = g_eightbit->effects_functions;
+		std::unordered_map<int, std::function<void(uint16_t*, int&, std::vector<float>)>> eff_funcs = g_eightbit->effects_functions;
 		for (int i = 0; i < effs.size() - 1; i++){
 			Effect eff = effs.at(i);
 			eff_funcs[eff.eff_id]((uint16_t*)&decompressedBuffer, samples, eff.eff_args);
@@ -165,11 +165,12 @@ LUA_FUNCTION_STATIC(eightbit_setdesamplerate) {
 LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 	std::vector<Effect> effs;
 	std::vector<float> eff_args;
+	int eff;
 	int id = LUA->GetNumber(1);
 	LUA->PushNil();
 
 	while (LUA->Next(-2)) {
-		int eff = LUA->GetNumber(-2);
+		eff = LUA->GetNumber(-2);
 		LUA->PushNil();
 		eff_args.clear();
         while (LUA->Next(-3)) {
