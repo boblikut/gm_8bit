@@ -276,8 +276,32 @@ GMOD_MODULE_OPEN()
 		LUA->PushNumber(AudioEffects::EFF_BITCRUSH);
 		LUA->SetTable(-3);
 
-		LUA->PushString("EFF_REVERB");
-		LUA->PushNumber(AudioEffects::EFF_REVERB);
+		LUA->PushString("EFF_LPF");
+		LUA->PushNumber(AudioEffects::EFF_LPF);
+		LUA->SetTable(-3);
+
+		LUA->PushString("EFF_HPF");
+		LUA->PushNumber(AudioEffects::EFF_HPF);
+		LUA->SetTable(-3);
+
+		LUA->PushString("EFF_NORMALIZE");
+		LUA->PushNumber(AudioEffects::EFF_NORMALIZE);
+		LUA->SetTable(-3);
+
+		LUA->PushString("EFF_COMPRESSOR");
+		LUA->PushNumber(AudioEffects::EFF_COMPRESSOR);
+		LUA->SetTable(-3);
+
+		LUA->PushString("EFF_DELAY");
+		LUA->PushNumber(AudioEffects::EFF_DELAY);
+		LUA->SetTable(-3);
+
+		LUA->PushString("EFF_DESTORTION");
+		LUA->PushNumber(AudioEffects::EFF_DESTORTION);
+		LUA->SetTable(-3);
+
+		LUA->PushString("EFF_WAVESHAPER");
+		LUA->PushNumber(AudioEffects::EFF_WAVESHAPER);
 		LUA->SetTable(-3);
 	LUA->SetTable(-3);
 	LUA->Pop();
