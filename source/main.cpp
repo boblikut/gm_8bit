@@ -296,8 +296,8 @@ GMOD_MODULE_OPEN()
 		LUA->PushNumber(AudioEffects::EFF_DELAY);
 		LUA->SetTable(-3);
 
-		LUA->PushString("EFF_DESTORTION");
-		LUA->PushNumber(AudioEffects::EFF_DESTORTION);
+		LUA->PushString("EFF_DISTORTION");
+		LUA->PushNumber(AudioEffects::EFF_DISTORTION);
 		LUA->SetTable(-3);
 
 		LUA->PushString("EFF_WAVESHAPER");
