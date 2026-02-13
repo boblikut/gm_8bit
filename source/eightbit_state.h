@@ -20,6 +20,11 @@ struct EightbitState {
 	std::unordered_map<int, std::function<void(uint16_t*, int&, std::vector<float>)>> effects_functions = {
 	    {AudioEffects::EFF_BITCRUSH, AudioEffects::BitCrush},
 	    {AudioEffects::EFF_DESAMPLE, AudioEffects::Desample},
-		{AudioEffects::EFF_REVERB, AudioEffects::Reverb}
+		{AudioEffects::EFF_LPF, AudioEffects::LowPassFilter},
+		{AudioEffects::EFF_HPF, AudioEffects::Normalize},
+		{AudioEffects::EFF_NORMALIZE, AudioEffects::Compressor},
+		{AudioEffects::EFF_COMPRESSOR, AudioEffects::Delay},
+		{AudioEffects::EFF_DELAY, AudioEffects::Distortion},
+		{AudioEffects::EFF_DESTORTION, AudioEffects::WaveShaper}
 	};
 };
