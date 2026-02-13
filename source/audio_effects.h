@@ -43,6 +43,18 @@ namespace AudioEffects {
 		samples = outIdx;
 	}
 
+	inline float u16_to_float(uint16_t sample) {
+	    int16_t signedSample = *reinterpret_cast<int16_t*>(&sample);
+	    return signedSample / 32768.0f;
+	}
+	
+	inline uint16_t float_to_u16(float sample) {
+	    if (sample > 1.0f) sample = 1.0f;
+	    if (sample < -1.0f) sample = -1.0f;
+	    int16_t signedSample = static_cast<int16_t>(sample * 32767.0f);
+	    return *reinterpret_cast<uint16_t*>(&signedSample);
+	}
+
 	void LowPassFilter(uint16_t* sampleBuffer, int& samples, std::vector<float> args) {
 	    if (args.empty()) return;
 	    
@@ -50,13 +62,13 @@ namespace AudioEffects {
 	    if (coef < 0.0f) coef = 0.0f;
 	    if (coef > 1.0f) coef = 1.0f;
 	    
-	    uint16_t prev = sampleBuffer[0];
+	    float prev = u16_to_float(sampleBuffer[0]);
 	    
 	    for (int i = 1; i < samples; i++) {
-	        uint16_t current = sampleBuffer[i];
+	        float current = u16_to_float(sampleBuffer[i]);
 	        float filtered = prev + coef * (current - prev);
-	        sampleBuffer[i] = (uint16_t)filtered;
-	        prev = sampleBuffer[i];
+	        sampleBuffer[i] = float_to_u16(filtered);
+	        prev = filtered;
 	    }
 	}
 	
@@ -67,18 +79,15 @@ namespace AudioEffects {
 	    if (coef < 0.0f) coef = 0.0f;
 	    if (coef > 1.0f) coef = 1.0f;
 	    
-	    uint16_t prevInput = sampleBuffer[0];
-	    uint16_t prevOutput = 0;
+	    float prevInput = u16_to_float(sampleBuffer[0]);
+	    float prevOutput = 0.0f;
 	    
 	    for (int i = 1; i < samples; i++) {
-	        uint16_t input = sampleBuffer[i];
+	        float input = u16_to_float(sampleBuffer[i]);
 	        float output = coef * (prevOutput + input - prevInput);
-	        if (output < 0) output = 0;
-	        if (output > 65535) output = 65535;
-	        
-	        sampleBuffer[i] = (uint16_t)output;
+	        sampleBuffer[i] = float_to_u16(output);
 	        prevInput = input;
-	        prevOutput = (uint16_t)output;
+	        prevOutput = output;
 	    }
 	}
 	
@@ -89,69 +98,61 @@ namespace AudioEffects {
 	    if (targetPeak < 0.0f) targetPeak = 0.0f;
 	    if (targetPeak > 1.0f) targetPeak = 1.0f;
 	    
-	    uint16_t maxVal = 0;
+	    float maxVal = 0.0f;
 	    for (int i = 0; i < samples; i++) {
-	        uint16_t val = sampleBuffer[i];
-	        uint16_t dist = (val > 32768) ? (val - 32768) : (32768 - val);
-	        if (dist > maxVal) maxVal = dist;
+	        float val = u16_to_float(sampleBuffer[i]);
+	        float absVal = (val < 0) ? -val : val;
+	        if (absVal > maxVal) maxVal = absVal;
 	    }
 	    
-	    if (maxVal == 0) return;
+	    if (maxVal < 0.0001f) return;
 	    
-	    float gain = (targetPeak * 32768) / maxVal;
+	    float gain = targetPeak / maxVal;
 	    
 	    for (int i = 0; i < samples; i++) {
-	        float val = sampleBuffer[i];
-	        val -= 32768;
+	        float val = u16_to_float(sampleBuffer[i]);
 	        val *= gain;
-	        val += 32768;
-	        
-	        if (val < 0) val = 0;
-	        if (val > 65535) val = 65535;
-	        
-	        sampleBuffer[i] = (uint16_t)val;
+	        sampleBuffer[i] = float_to_u16(val);
 	    }
 	}
 	
 	void Compressor(uint16_t* sampleBuffer, int& samples, std::vector<float> args) {
 	    if (args.size() < 2) return;
 	    
-	    uint16_t threshold = (uint16_t)args.at(0);
+	    float threshold = args.at(0) / 32768.0f;
 	    float ratio = args.at(1);
 	    if (ratio < 1.0f) ratio = 1.0f;
 	    
 	    for (int i = 0; i < samples; i++) {
-	        uint16_t val = sampleBuffer[i];
+	        float val = u16_to_float(sampleBuffer[i]);
+	        float absVal = (val < 0) ? -val : val;
 	        
-	        if (val > threshold) {
-	            uint16_t over = val - threshold;
-	            over = (uint16_t)(over / ratio);
-	            sampleBuffer[i] = threshold + over;
+	        if (absVal > threshold) {
+	            float over = absVal - threshold;
+	            float reduced = threshold + over / ratio;
+	            if (val < 0) val = -reduced;
+	            else val = reduced;
 	        }
+	        
+	        sampleBuffer[i] = float_to_u16(val);
 	    }
 	}
 	
-	static uint16_t delayBuffer[44100];
+	static float delayBuffer[44100];
+	static int delayPos = 0;
 	
 	void Delay(uint16_t* sampleBuffer, int& samples, std::vector<float> args) {
 	    if (args.size() < 2) return;
 	    
 	    int delaySamples = (int)args.at(0);
-	    uint8_t feedback = (uint8_t)args.at(1);
-	    
-	    static int delayPos = 0;
+	    float feedback = args.at(1) / 255.0f;
 	    
 	    for (int i = 0; i < samples; i++) {
-	        uint16_t delayed = delayBuffer[delayPos];
-	        
-	        uint16_t original = sampleBuffer[i];
-	        uint32_t mixed = (original + delayed) / 2;
-	        
-	        uint32_t feedbackVal = (original * feedback) >> 8;
-	        delayBuffer[delayPos] = (uint16_t)(feedbackVal);
-	        
-	        sampleBuffer[i] = (uint16_t)mixed;
-	        
+	        float input = u16_to_float(sampleBuffer[i]);
+	        float delayed = delayBuffer[delayPos];
+	        float mixed = (input + delayed) * 0.5f;
+	        delayBuffer[delayPos] = input + delayed * feedback;
+	        sampleBuffer[i] = float_to_u16(mixed);
 	        delayPos++;
 	        if (delayPos >= delaySamples) delayPos = 0;
 	    }
@@ -160,18 +161,14 @@ namespace AudioEffects {
 	void Distortion(uint16_t* sampleBuffer, int& samples, std::vector<float> args) {
 	    if (args.empty()) return;
 	    
-	    uint16_t threshold = (uint16_t)args.at(0);
-	    uint16_t lowThreshold = 32768 - threshold;
-	    uint16_t highThreshold = 32768 + threshold;
+	    float threshold = args.at(0) / 32768.0f;
+	    if (threshold > 1.0f) threshold = 1.0f;
 	    
 	    for (int i = 0; i < samples; i++) {
-	        uint16_t val = sampleBuffer[i];
-	        
-	        if (val > highThreshold) {
-	            sampleBuffer[i] = highThreshold;
-	        } else if (val < lowThreshold) {
-	            sampleBuffer[i] = lowThreshold;
-	        }
+	        float val = u16_to_float(sampleBuffer[i]);
+	        if (val > threshold) val = threshold;
+	        if (val < -threshold) val = -threshold;
+	        sampleBuffer[i] = float_to_u16(val);
 	    }
 	}
 	
@@ -183,17 +180,12 @@ namespace AudioEffects {
 	    if (intensity > 1.0f) intensity = 1.0f;
 	    
 	    for (int i = 0; i < samples; i++) {
-	        float val = sampleBuffer[i];
-	        val -= 32768;
-	        
+	        float val = u16_to_float(sampleBuffer[i]);
 	        float absVal = (val < 0) ? -val : val;
-	        val = val * (1.0f + intensity * absVal / 32768.0f);
-	        
-	        if (val > 32767) val = 32767;
-	        if (val < -32768) val = -32768;
-	        
-	        val += 32768;
-	        sampleBuffer[i] = (uint16_t)val;
+	        val = val * (1.0f + intensity * absVal);
+	        if (val > 1.0f) val = 1.0f;
+	        if (val < -1.0f) val = -1.0f;
+	        sampleBuffer[i] = float_to_u16(val);
 	    }
 	}
 }
