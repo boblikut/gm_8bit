@@ -303,6 +303,10 @@ GMOD_MODULE_OPEN()
 		LUA->PushString("EFF_WAVESHAPER");
 		LUA->PushNumber(AudioEffects::EFF_WAVESHAPER);
 		LUA->SetTable(-3);
+
+		LUA->PushString("EFF_REVERB");
+		LUA->PushNumber(AudioEffects::EFF_REVERB);
+		LUA->SetTable(-3);
 	LUA->SetTable(-3);
 	LUA->Pop();
 
