@@ -8,7 +8,13 @@ namespace AudioEffects {
 		EFF_NONE,
 		EFF_BITCRUSH,
 		EFF_DESAMPLE,
-		EFF_REVERB
+		EFF_LPF,
+		EFF_HPF,
+		EFF_NORMALIZE,
+		EFF_COMPRESSOR,
+		EFF_DELAY,
+		EFF_DESTORTION,
+		EFF_WAVESHAPER
 	};
 
 	void BitCrush(uint16_t* sampleBuffer, int& samples, std::vector<float> args) {
@@ -37,124 +43,157 @@ namespace AudioEffects {
 		samples = outIdx;
 	}
 
-	static uint16_t reverbBuf1[44100 / 10];  // ~100ms при 44.1kHz
-	static uint16_t reverbBuf2[44100 / 8];   // ~125ms
-	static uint16_t reverbBuf3[44100 / 6];   // ~166ms
-	static uint16_t reverbBuf4[44100 / 5];   // ~200ms
-	static uint16_t allPassBuf1[44100 / 20]; // ~50ms
-	static uint16_t allPassBuf2[44100 / 25]; // ~40ms
+	void LowPassFilter(uint16_t* sampleBuffer, int& samples, std::vector<float> args) {
+	    if (args.empty()) return;
+	    
+	    float coef = args.at(0);
+	    if (coef < 0.0f) coef = 0.0f;
+	    if (coef > 1.0f) coef = 1.0f;
+	    
+	    uint16_t prev = sampleBuffer[0];
+	    
+	    for (int i = 1; i < samples; i++) {
+	        uint16_t current = sampleBuffer[i];
+	        float filtered = prev + coef * (current - prev);
+	        sampleBuffer[i] = (uint16_t)filtered;
+	        prev = sampleBuffer[i];
+	    }
+	}
 	
-	static int reverbPos1 = 0, reverbPos2 = 0, reverbPos3 = 0, reverbPos4 = 0;
-	static int allPassPos1 = 0, allPassPos2 = 0;
-	
-	/**
-	 * Reverb
-	 * args[0] - room size (0-255)
-	 * args[1] - fade-out (0-255)
-	 * args[2] - wet/dry (0-255)
-	 */
-	void Reverb(uint16_t* sampleBuffer, int& samples, std::vector<float> args) {
-	    if (args.size() < 3) return;
+	void HighPassFilter(uint16_t* sampleBuffer, int& samples, std::vector<float> args) {
+	    if (args.empty()) return;
 	    
-	    uint8_t roomSize = (uint8_t)args.at(0);
-	    uint8_t decay = (uint8_t)args.at(1);
-	    uint8_t wetDry = (uint8_t)args.at(2);
+	    float coef = args.at(0);
+	    if (coef < 0.0f) coef = 0.0f;
+	    if (coef > 1.0f) coef = 1.0f;
 	    
-	    float feedback = 0.5f + (decay / 255.0f) * 0.4f;  // 0.5 - 0.9
-	    float wetLevel = wetDry / 255.0f;
-	    float dryLevel = 1.0f - wetLevel;
+	    uint16_t prevInput = sampleBuffer[0];
+	    uint16_t prevOutput = 0;
 	    
-	    int size1 = sizeof(reverbBuf1) / 2 * (roomSize / 255.0f);
-	    int size2 = sizeof(reverbBuf2) / 2 * (roomSize / 255.0f);
-	    int size3 = sizeof(reverbBuf3) / 2 * (roomSize / 255.0f);
-	    int size4 = sizeof(reverbBuf4) / 2 * (roomSize / 255.0f);
-	    int sizeAP1 = sizeof(allPassBuf1) / 2;
-	    int sizeAP2 = sizeof(allPassBuf2) / 2;
-	    
-	    if (size1 < 10) size1 = 10;
-	    if (size2 < 10) size2 = 10;
-	    if (size3 < 10) size3 = 10;
-	    if (size4 < 10) size4 = 10;
-	    
-	    for (int i = 0; i < samples; i++) {
+	    for (int i = 1; i < samples; i++) {
 	        uint16_t input = sampleBuffer[i];
-	        
-	        uint16_t comb1 = reverbBuf1[reverbPos1];
-	        int32_t filtered1 = (comb1 * feedback) + input;
-	        if (filtered1 > 65535) filtered1 = 65535;
-	        if (filtered1 < 0) filtered1 = 0;
-	        reverbBuf1[reverbPos1] = (uint16_t)filtered1;
-	        
-	        uint16_t comb2 = reverbBuf2[reverbPos2];
-	        int32_t filtered2 = (comb2 * feedback) + input;
-	        if (filtered2 > 65535) filtered2 = 65535;
-	        if (filtered2 < 0) filtered2 = 0;
-	        reverbBuf2[reverbPos2] = (uint16_t)filtered2;
-	        
-	        uint16_t comb3 = reverbBuf3[reverbPos3];
-	        int32_t filtered3 = (comb3 * feedback) + input;
-	        if (filtered3 > 65535) filtered3 = 65535;
-	        if (filtered3 < 0) filtered3 = 0;
-	        reverbBuf3[reverbPos3] = (uint16_t)filtered3;
-	        
-	        uint16_t comb4 = reverbBuf4[reverbPos4];
-	        int32_t filtered4 = (comb4 * feedback) + input;
-	        if (filtered4 > 65535) filtered4 = 65535;
-	        if (filtered4 < 0) filtered4 = 0;
-	        reverbBuf4[reverbPos4] = (uint16_t)filtered4;
-	        
-	        int32_t reverbSum = comb1 + comb2 + comb3 + comb4;
-	        reverbSum /= 2;  // Нормализация
-	        
-	        uint16_t ap1In = (uint16_t)reverbSum;
-	        uint16_t ap1Delay = allPassBuf1[allPassPos1];
-	        
-	        int32_t ap1Out = -ap1In + (ap1Delay * (255 - decay) / 255);
-	        if (ap1Out > 65535) ap1Out = 65535;
-	        if (ap1Out < 0) ap1Out = 0;
-	        
-	        int32_t ap1DelayNew = ap1In + (ap1Delay * decay / 255);
-	        if (ap1DelayNew > 65535) ap1DelayNew = 65535;
-	        if (ap1DelayNew < 0) ap1DelayNew = 0;
-	        
-	        allPassBuf1[allPassPos1] = (uint16_t)ap1DelayNew;
-	        
-	        uint16_t ap2In = (uint16_t)ap1Out;
-	        uint16_t ap2Delay = allPassBuf2[allPassPos2];
-	        
-	        int32_t ap2Out = -ap2In + (ap2Delay * (255 - decay) / 255);
-	        if (ap2Out > 65535) ap2Out = 65535;
-	        if (ap2Out < 0) ap2Out = 0;
-	        
-	        int32_t ap2DelayNew = ap2In + (ap2Delay * decay / 255);
-	        if (ap2DelayNew > 65535) ap2DelayNew = 65535;
-	        if (ap2DelayNew < 0) ap2DelayNew = 0;
-	        
-	        allPassBuf2[allPassPos2] = (uint16_t)ap2DelayNew;
-	        
-	        int32_t output = (input * dryLevel) + (ap2Out * wetLevel);
-	        if (output > 65535) output = 65535;
+	        float output = coef * (prevOutput + input - prevInput);
 	        if (output < 0) output = 0;
+	        if (output > 65535) output = 65535;
 	        
 	        sampleBuffer[i] = (uint16_t)output;
+	        prevInput = input;
+	        prevOutput = (uint16_t)output;
+	    }
+	}
+	
+	void Normalize(uint16_t* sampleBuffer, int& samples, std::vector<float> args) {
+	    if (args.empty() || samples == 0) return;
+	    
+	    float targetPeak = args.at(0);
+	    if (targetPeak < 0.0f) targetPeak = 0.0f;
+	    if (targetPeak > 1.0f) targetPeak = 1.0f;
+	    
+	    uint16_t maxVal = 0;
+	    for (int i = 0; i < samples; i++) {
+	        uint16_t val = sampleBuffer[i];
+	        uint16_t dist = (val > 32768) ? (val - 32768) : (32768 - val);
+	        if (dist > maxVal) maxVal = dist;
+	    }
+	    
+	    if (maxVal == 0) return;
+	    
+	    float gain = (targetPeak * 32768) / maxVal;
+	    
+	    for (int i = 0; i < samples; i++) {
+	        float val = sampleBuffer[i];
+	        val -= 32768;
+	        val *= gain;
+	        val += 32768;
 	        
-	        reverbPos1++;
-	        if (reverbPos1 >= size1) reverbPos1 = 0;
+	        if (val < 0) val = 0;
+	        if (val > 65535) val = 65535;
 	        
-	        reverbPos2++;
-	        if (reverbPos2 >= size2) reverbPos2 = 0;
+	        sampleBuffer[i] = (uint16_t)val;
+	    }
+	}
+	
+	void Compressor(uint16_t* sampleBuffer, int& samples, std::vector<float> args) {
+	    if (args.size() < 2) return;
+	    
+	    uint16_t threshold = (uint16_t)args.at(0);
+	    float ratio = args.at(1);
+	    if (ratio < 1.0f) ratio = 1.0f;
+	    
+	    for (int i = 0; i < samples; i++) {
+	        uint16_t val = sampleBuffer[i];
 	        
-	        reverbPos3++;
-	        if (reverbPos3 >= size3) reverbPos3 = 0;
+	        if (val > threshold) {
+	            uint16_t over = val - threshold;
+	            over = (uint16_t)(over / ratio);
+	            sampleBuffer[i] = threshold + over;
+	        }
+	    }
+	}
+	
+	static uint16_t delayBuffer[44100];
+	
+	void Delay(uint16_t* sampleBuffer, int& samples, std::vector<float> args) {
+	    if (args.size() < 2) return;
+	    
+	    int delaySamples = (int)args.at(0);
+	    uint8_t feedback = (uint8_t)args.at(1);
+	    
+	    static int delayPos = 0;
+	    
+	    for (int i = 0; i < samples; i++) {
+	        uint16_t delayed = delayBuffer[delayPos];
 	        
-	        reverbPos4++;
-	        if (reverbPos4 >= size4) reverbPos4 = 0;
+	        uint16_t original = sampleBuffer[i];
+	        uint32_t mixed = (original + delayed) / 2;
 	        
-	        allPassPos1++;
-	        if (allPassPos1 >= sizeAP1) allPassPos1 = 0;
+	        uint32_t feedbackVal = (original * feedback) >> 8;
+	        delayBuffer[delayPos] = (uint16_t)(feedbackVal);
 	        
-	        allPassPos2++;
-	        if (allPassPos2 >= sizeAP2) allPassPos2 = 0;
+	        sampleBuffer[i] = (uint16_t)mixed;
+	        
+	        delayPos++;
+	        if (delayPos >= delaySamples) delayPos = 0;
+	    }
+	}
+	
+	void Distortion(uint16_t* sampleBuffer, int& samples, std::vector<float> args) {
+	    if (args.empty()) return;
+	    
+	    uint16_t threshold = (uint16_t)args.at(0);
+	    uint16_t lowThreshold = 32768 - threshold;
+	    uint16_t highThreshold = 32768 + threshold;
+	    
+	    for (int i = 0; i < samples; i++) {
+	        uint16_t val = sampleBuffer[i];
+	        
+	        if (val > highThreshold) {
+	            sampleBuffer[i] = highThreshold;
+	        } else if (val < lowThreshold) {
+	            sampleBuffer[i] = lowThreshold;
+	        }
+	    }
+	}
+	
+	void WaveShaper(uint16_t* sampleBuffer, int& samples, std::vector<float> args) {
+	    if (args.empty()) return;
+	    
+	    float intensity = args.at(0);
+	    if (intensity < 0.0f) intensity = 0.0f;
+	    if (intensity > 1.0f) intensity = 1.0f;
+	    
+	    for (int i = 0; i < samples; i++) {
+	        float val = sampleBuffer[i];
+	        val -= 32768;
+	        
+	        float absVal = (val < 0) ? -val : val;
+	        val = val * (1.0f + intensity * absVal / 32768.0f);
+	        
+	        if (val > 32767) val = 32767;
+	        if (val < -32768) val = -32768;
+	        
+	        val += 32768;
+	        sampleBuffer[i] = (uint16_t)val;
 	    }
 	}
 }
