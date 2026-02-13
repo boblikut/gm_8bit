@@ -26,6 +26,7 @@ struct EightbitState {
 		{AudioEffects::EFF_COMPRESSOR, AudioEffects::Compressor},
 		{AudioEffects::EFF_DELAY, AudioEffects::Delay},
 		{AudioEffects::EFF_DESTORTION, AudioEffects::Distortion},
-		{AudioEffects::EFF_DESTORTION, AudioEffects::WaveShaper}
+		{AudioEffects::EFF_WAVESHAPER, AudioEffects::WaveShaper},
+		{AudioEffects::EFF_REVERB, AudioEffects::Reverb}
 	};
 };
