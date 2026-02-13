@@ -21,10 +21,11 @@ struct EightbitState {
 	    {AudioEffects::EFF_BITCRUSH, AudioEffects::BitCrush},
 	    {AudioEffects::EFF_DESAMPLE, AudioEffects::Desample},
 		{AudioEffects::EFF_LPF, AudioEffects::LowPassFilter},
-		{AudioEffects::EFF_HPF, AudioEffects::Normalize},
-		{AudioEffects::EFF_NORMALIZE, AudioEffects::Compressor},
-		{AudioEffects::EFF_COMPRESSOR, AudioEffects::Delay},
-		{AudioEffects::EFF_DELAY, AudioEffects::Distortion},
+		{AudioEffects::EFF_HPF, AudioEffects::HighPassFilter},
+		{AudioEffects::EFF_NORMALIZE, AudioEffects::Normalize},
+		{AudioEffects::EFF_COMPRESSOR, AudioEffects::Compressor},
+		{AudioEffects::EFF_DELAY, AudioEffects::Delay},
+		{AudioEffects::EFF_DESTORTION, AudioEffects::Distortion},
 		{AudioEffects::EFF_DESTORTION, AudioEffects::WaveShaper}
 	};
 };
