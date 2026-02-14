@@ -16,6 +16,7 @@
 #include <GarrysMod/Symbol.hpp>
 #include <cstdint>
 #include "opus_framedecoder.h"
+#include <public/inetmsghandler.h>
 
 #define STEAM_PCKT_SZ sizeof(uint64_t) + sizeof(CRC32_t)
 #ifdef SYSTEM_WINDOWS
