@@ -132,10 +132,12 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		voiceData.m_nLength = nBytes * 8;	// length in bits
 		voiceData.m_DataOut = data;
 		voiceData.m_xuid = xuid;
-	
-		for(int i=0; i < (CGameServer*)sv.GetClientCount(); i++)
+
+		CBaseServer* server = (CGameServer*)sv;
+		
+		for(int i=0; i < server.GetClientCount(); i++)
 		{
-			IClient *pDestClient = (CGameServer*)sv.GetClient(i);
+			IClient *pDestClient = server.GetClient(i);
 	
 			bool bSelf = (pDestClient == cl);
 	
