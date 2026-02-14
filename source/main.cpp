@@ -123,9 +123,6 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		//return detour_BroadcastVoiceData.GetTrampoline<SV_BroadcastVoiceData>()(cl, bytesWritten, recompressBuffer, xuid);
 
 		//https://github.com/uvbs/source-2007/blob/d07be8d02519ff5c902e1eb6430e028e1b302c8b/src_main/engine/sv_main.cpp#L1561C1-L1612C2
-		// Disable voice?
-		if( !sv_voiceenable.GetInt() )
-			return;
 	
 		// Build voice message once
 		SVC_VoiceData voiceData;
