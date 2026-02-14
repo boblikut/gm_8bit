@@ -2,7 +2,6 @@
 
 #include <GarrysMod/Lua/Interface.h>
 #include <GarrysMod/FactoryLoader.hpp>
-#include <GarrysMod/InterfacePointers.hpp>
 #include <scanning/symbolfinder.hpp>
 #include <detouring/hook.hpp>
 #include <iostream>
