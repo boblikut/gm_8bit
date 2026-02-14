@@ -45,7 +45,7 @@ static char recompressBuffer[20 * 1024];
 
 Net* net_handl = nullptr;
 EightbitState* g_eightbit = nullptr;
-CGameServer	sv;
+IServer* sv = nullptr;
 
 typedef void (*SV_BroadcastVoiceData)(IClient* cl, int nBytes, char* data, int64 xuid);
 Detouring::Hook detour_BroadcastVoiceData;
@@ -133,9 +133,9 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		voiceData.m_DataOut = data;
 		voiceData.m_xuid = xuid;
 	
-		for(int i=0; i < sv.GetClientCount(); i++)
+		for(int i=0; i < (CGameServer*)sv.GetClientCount(); i++)
 		{
-			IClient *pDestClient = sv.GetClient(i);
+			IClient *pDestClient = (CGameServer*)sv.GetClient(i);
 	
 			bool bSelf = (pDestClient == cl);
 	
