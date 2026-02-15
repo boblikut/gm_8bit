@@ -241,10 +241,9 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 	std::unordered_set<std::string> special_players;
 	int eff;
 	int id = LUA->GetNumber(1);
-	LUA->Pop();
 	int top = LUA->Top();
 	
-	if ( top == 2 ){
+	if ( top == 3 ){
 		LUA->PushNil();
 		
 		while (LUA->Next(-2)) {
@@ -280,7 +279,7 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 			afflicted_players.erase(id);
 		}
 		else {
-			if (top == 2){
+			if (top == 3){
 				std::get<2>(afflicted_players.at(id)) = effs;
 				std::get<3>(afflicted_players.at(id)) = special_players;
 			} 
