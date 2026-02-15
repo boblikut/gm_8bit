@@ -137,8 +137,8 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 
 		for(int i=0; i < sv->GetClientCount(); i++)
 		{
-			IClient *pDestClient = sv->GetClient(i);
-
+			CBaseClient *pDestClient = (CBaseClient*)sv->GetClient(i);
+			Msg("Player's index: %d, Player's SteamID %s", i, pDestClient->GetNetworkIDString());
 			bool bSelf = (pDestClient == cl);
 
 			// Only send voice to active clients
