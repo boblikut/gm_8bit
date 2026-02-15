@@ -8,6 +8,7 @@
 #include <iostream>
 #include <iclient.h>
 #include <unordered_map>
+#include <unordered_set>
 #include "ivoicecodec.h"
 #include "audio_effects.h"
 #include "net.h"
@@ -44,6 +45,8 @@
 
 static char decompressedBuffer[20 * 1024];
 static char recompressBuffer[20 * 1024];
+static char recompressBuffer_special[20 * 1024];
+static char decompressedBuffer_special[20 * 1024];
 
 Net* net_handl = nullptr;
 EightbitState* g_eightbit = nullptr;
@@ -105,18 +108,35 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		#endif
 
 		//Apply audio effect
-		std::vector<Effect> effs = std::get<1>(afflicted_players.at(uid));
+		std::vector<Effect> effs_default = std::get<1>(afflicted_players.at(uid));
+		std::vector<Effect> effs_special = std::get<2>(afflicted_players.at(uid));
 		std::unordered_map<int, std::function<void(uint16_t*, int&, std::vector<float>)>> eff_funcs = g_eightbit->effects_functions;
-		for (int i = 0; i < effs.size(); i++){
-			Effect eff = effs.at(i);
-			eff_funcs[eff.eff_id]((uint16_t*)&decompressedBuffer, samples, eff.eff_args);
+		int samples_special;
+
+		//effect special for selected players
+		if (effs_special.size() > 0){
+			decompressedBuffer_special = decompressedBuffer;
+			samples_special = samples;
+			for (int i = 0; i < effs_special.size(); i++){
+				Effect effs_special = effs_special.at(i);
+				eff_funcs[effs_special.eff_id]((uint16_t*)&decompressedBuffer_special, samples_special, effs_special.eff_args);
+			}
 		}
+
+		//effect for another players
+		if (effs_default.size() > 0){
+			for (int i = 0; i < effs_default.size(); i++){
+				Effect eff = effs_default.at(i);
+				eff_funcs[eff.eff_id]((uint16_t*)&decompressedBuffer, samples, effs_default.eff_args);
+			}
+		}	
 		
 		//Recompress the stream
 		uint64_t steamid = *(uint64_t*)data;
 		int bytesWritten = SteamVoice::CompressIntoBuffer(steamid, codec, decompressedBuffer, samples*2, recompressBuffer, sizeof(recompressBuffer), 24000);
-		if (bytesWritten <= 0) {
-			return detour_BroadcastVoiceData.GetTrampoline<SV_BroadcastVoiceData>()(cl, nBytes, data, xuid);
+		int bytesWritten_special;
+		if (effs_special.size() > 0){
+			bytesWritten_special = SteamVoice::CompressIntoBuffer(steamid, codec, decompressedBuffer_special, samples_special*2, recompressBuffer_special, sizeof(recompressBuffer_special), 24000);
 		}
 
 		#ifdef _DEBUG
@@ -131,14 +151,18 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		// Build voice message once
 		SVC_VoiceData voiceData;
 		voiceData.m_nFromClient = cl->GetPlayerSlot();
-		voiceData.m_nLength = bytesWritten * 8;	// length in bits
-		voiceData.m_DataOut = recompressBuffer;
 		voiceData.m_xuid = xuid;
 
+		//getting players that need a special effect(their SteamID's)
+		std::unordered_set<std::string> special_players = std::get<3>(afflicted_players.at(uid));
+		
 		for(int i=0; i < sv->GetClientCount(); i++)
 		{
+			voiceData.m_nLength = bytesWritten * 8;	// length in bits
+			voiceData.m_DataOut = recompressBuffer;
+			
 			IClient *pDestClient = sv->GetClient(i);
-			Msg("Player's index: %d, Player's SteamID %s", i, pDestClient->GetNetworkIDString());
+			
 			bool bSelf = (pDestClient == cl);
 
 			// Only send voice to active clients
@@ -153,7 +177,6 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 			if ( !bHearsPlayer && !bSelf )
 				continue;	
 
-			voiceData.m_nLength = bytesWritten * 8;
 
 			// Is loopback enabled?
 			if( !bHearsPlayer )
@@ -163,6 +186,11 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 				voiceData.m_nLength = 0;	
 			}
 
+			if( special_players.count( pDestClient->GetNetworkIDString() ) ){
+				voiceData.m_nLength = bytesWritten_special * 8;
+				voiceData.m_DataOut = recompressBuffer_special;
+			}
+			
 			pDestClient->SendNetMsg( voiceData );
 		}
 	}
@@ -209,41 +237,67 @@ LUA_FUNCTION_STATIC(eightbit_setdesamplerate) {
 LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 	std::vector<Effect> effs;
 	std::vector<float> eff_args;
+	std::unordered_set<string> special_players;
 	int eff;
 	int id = LUA->GetNumber(1);
-	LUA->PushNil();
-
-	while (LUA->Next(-2)) {
-		eff = LUA->GetNumber(-2);
-		LUA->PushNil();
-		eff_args.clear();
-        while (LUA->Next(-2)) {
-            eff_args.push_back(LUA->GetNumber(-1));
-            LUA->Pop(1);
-        }
-        effs.push_back({eff, eff_args});
-        LUA->Pop(1);
-	}
-
 	LUA->Pop();
+	int top = LUA->GetTop();
+	
+	if ( top == 2 ){
+		LUA->PushNil();
+		
+		while (LUA->Next(-2)) {
+			LUA->PushNil();
+			special_players.insert(LUA->GetString(-1));
+	        LUA->Pop(1);
+		}
+		
+		LUA->Pop();
+	}
+	
+		LUA->PushNil();
+	
+		while (LUA->Next(-2)) {
+			eff = LUA->GetNumber(-2);
+			LUA->PushNil();
+			eff_args.clear();
+	        while (LUA->Next(-2)) {
+	            eff_args.push_back(LUA->GetNumber(-1));
+	            LUA->Pop(1);
+	        }
+	        effs.push_back({eff, eff_args});
+	        LUA->Pop(1);
+		}
+	
+		LUA->Pop();
 
 	auto& afflicted_players = g_eightbit->afflictedPlayers;
 	if (afflicted_players.find(id) != afflicted_players.end()) {
-		if (effs.size() == 1 && effs.at(0).eff_id == AudioEffects::EFF_NONE) {
+		if (effs.at(0).eff_id == AudioEffects::EFF_NONE || effs.size() == 0) {
 			IVoiceCodec* codec = std::get<0>(afflicted_players.at(id));
 			delete codec;
 			afflicted_players.erase(id);
 		}
 		else {
-			std::get<1>(afflicted_players.at(id)) = effs;
+			if (top == 2){
+				std::get<2>(afflicted_players.at(id)) = effs;
+				std::get<3>(afflicted_players.at(id)) = special_players;
+			} 
+			else {
+				std::get<1>(afflicted_players.at(id)) = effs;
+			}
 		}
 		return 0;
 	}
-	else if(eff != AudioEffects::EFF_NONE) {
-
+	else if(effs.at(0).eff_id == AudioEffects::EFF_NONE || effs.size() == 0) {
 		IVoiceCodec* codec = new SteamOpus::Opus_FrameDecoder();
 		codec->Init(5, 24000);
-		afflicted_players.emplace(id, std::make_tuple(codec, effs));
+		if (top == 2){
+			afflicted_players.emplace(id, std::make_tuple(codec, effs, {}));
+		} 
+		else {
+			afflicted_players.emplace(id, std::make_tuple(codec, {}, effs));
+		}	
 	}
 	return 0;
 }
