@@ -243,7 +243,7 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 	int id = LUA->GetNumber(1);
 	LUA->Pop();
 	int top = LUA->Top();
-	/*
+	
 	if ( top == 2 ){
 		LUA->PushNil();
 		
@@ -300,7 +300,7 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 			afflicted_players.emplace(id, std::make_tuple(codec, effs, std::vector<Effect>{}, std::unordered_set<std::string>{}));
 		}	
 	}
-	*/
+	
 	return 0;
 }
 
