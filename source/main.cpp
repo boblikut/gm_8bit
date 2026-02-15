@@ -17,6 +17,7 @@
 #include "eightbit_state.h"
 #include <GarrysMod/Symbol.hpp>
 #include <cstdint>
+#include <cstring>
 #include "opus_framedecoder.h"
 #include <netmessages.h>
 #include <iserver.h>
@@ -115,11 +116,11 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 
 		//effect special for selected players
 		if (effs_special.size() > 0){
-			decompressedBuffer_special = decompressedBuffer;
+			strcpy(decompressedBuffer_special, decompressedBuffer);
 			samples_special = samples;
-			for (int i = 0; i < effs_special.size(); i++){
-				Effect effs_special = effs_special.at(i);
-				eff_funcs[effs_special.eff_id]((uint16_t*)&decompressedBuffer_special, samples_special, effs_special.eff_args);
+			for (int i = 0; i < effs_default.size(); i++){
+				Effect eff = effs_default.at(i);
+				eff_funcs[eff.eff_id]((uint16_t*)&decompressedBuffer_special, samples_special, eff.eff_args);
 			}
 		}
 
@@ -127,7 +128,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		if (effs_default.size() > 0){
 			for (int i = 0; i < effs_default.size(); i++){
 				Effect eff = effs_default.at(i);
-				eff_funcs[eff.eff_id]((uint16_t*)&decompressedBuffer, samples, effs_default.eff_args);
+				eff_funcs[eff.eff_id]((uint16_t*)&decompressedBuffer, samples, eff.eff_args);
 			}
 		}	
 		
@@ -237,7 +238,7 @@ LUA_FUNCTION_STATIC(eightbit_setdesamplerate) {
 LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 	std::vector<Effect> effs;
 	std::vector<float> eff_args;
-	std::unordered_set<string> special_players;
+	std::unordered_set<std::string> special_players;
 	int eff;
 	int id = LUA->GetNumber(1);
 	LUA->Pop();
