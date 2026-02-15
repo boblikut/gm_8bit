@@ -136,7 +136,33 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		
 		for(int i=0; i < sv->GetClientCount(); i++)
 		{
-			Msg("%d", i);
+			IClient *pDestClient = sv->GetClient(i);
+	
+			bool bSelf = (pDestClient == cl);
+	
+			// Only send voice to active clients
+			if( !pDestClient->IsActive() )
+				continue;
+	
+			// Does the game code want cl sending to this client?
+	
+			bool bHearsPlayer = pDestClient->IsHearingClient( voiceData.m_nFromClient );
+			voiceData.m_bProximity = pDestClient->IsProximityHearingClient( voiceData.m_nFromClient );
+				
+			if ( !bHearsPlayer && !bSelf )
+				continue;	
+	
+			voiceData.m_nLength = nBytes * 8;
+	
+			// Is loopback enabled?
+			if( !bHearsPlayer )
+			{
+				// Still send something, just zero length (this is so the client 
+				// can display something that shows knows the server knows it's talking).
+				voiceData.m_nLength = 0;	
+			}
+	
+			pDestClient->SendNetMsg( voiceData );
 		}
 	}
 	else {
