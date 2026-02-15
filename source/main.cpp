@@ -136,11 +136,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		
 		for(int i=0; i < sv->GetClientCount(); i++)
 		{
-			IClient *pDestClient = sv->GetClient(i);
-	
-			
-	
-			pDestClient->SendNetMsg( voiceData );
+			Msg(i);
 		}
 	}
 	else {
