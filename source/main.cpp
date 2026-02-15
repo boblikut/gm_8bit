@@ -136,7 +136,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		
 		for(int i=0; i < sv->GetClientCount(); i++)
 		{
-			Msg(i);
+			Msg("%d", i);
 		}
 	}
 	else {
