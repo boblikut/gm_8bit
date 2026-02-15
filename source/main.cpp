@@ -133,11 +133,6 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		voiceData.m_nLength = nBytes * 8;	// length in bits
 		voiceData.m_DataOut = data;
 		voiceData.m_xuid = xuid;
-
-		if (sv == nullptr) {
-			Msg("sv = nullptr");
-			return detour_BroadcastVoiceData.GetTrampoline<SV_BroadcastVoiceData>()(cl, nBytes, data, xuid);
-		}
 		
 		for(int i=0; i < sv->GetClientCount(); i++)
 		{
