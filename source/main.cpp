@@ -271,10 +271,10 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 	}
 
 	LUA->Pop();
-
+/*
 	auto& afflicted_players = g_eightbit->afflictedPlayers;
 	if (afflicted_players.find(id) != afflicted_players.end()) {
-		if (effs.at(0).eff_id == AudioEffects::EFF_NONE || effs.size() == 0) {
+		if (effs.size() == 0 || effs.at(0).eff_id == AudioEffects::EFF_NONE) {
 			IVoiceCodec* codec = std::get<0>(afflicted_players.at(id));
 			delete codec;
 			afflicted_players.erase(id);
@@ -290,7 +290,7 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 		}
 		return 0;
 	}
-	else if(effs.at(0).eff_id != AudioEffects::EFF_NONE && effs.size() > 0) {
+	else if(effs.size() > 0 && effs.at(0).eff_id != AudioEffects::EFF_NONE) {
 		IVoiceCodec* codec = new SteamOpus::Opus_FrameDecoder();
 		codec->Init(5, 24000);
 		if (top == 2){
@@ -300,6 +300,7 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 			afflicted_players.emplace(id, std::make_tuple(codec, effs, std::vector<Effect>{}, std::unordered_set<std::string>{}));
 		}	
 	}
+*/
 	return 0;
 }
 
