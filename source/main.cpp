@@ -2,6 +2,7 @@
 
 #include <GarrysMod/Lua/Interface.h>
 #include <GarrysMod/FactoryLoader.hpp>
+#include <GarrysMod/InterfacePointers.hpp>
 #include <scanning/symbolfinder.hpp>
 #include <detouring/hook.hpp>
 #include <iostream>
@@ -46,7 +47,7 @@ static char recompressBuffer[20 * 1024];
 
 Net* net_handl = nullptr;
 EightbitState* g_eightbit = nullptr;
-IServer* sv = nullptr;
+IServer* sv = Server::Server();
 
 typedef void (*SV_BroadcastVoiceData)(IClient* cl, int nBytes, char* data, int64 xuid);
 Detouring::Hook detour_BroadcastVoiceData;
