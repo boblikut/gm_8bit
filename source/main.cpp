@@ -47,7 +47,7 @@ static char recompressBuffer[20 * 1024];
 
 Net* net_handl = nullptr;
 EightbitState* g_eightbit = nullptr;
-IServer* sv = InterfacePointers::Server();
+IServer* sv = nullptr;
 
 typedef void (*SV_BroadcastVoiceData)(IClient* cl, int nBytes, char* data, int64 xuid);
 Detouring::Hook detour_BroadcastVoiceData;
@@ -252,7 +252,12 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 GMOD_MODULE_OPEN()
 {
 	g_eightbit = new EightbitState();
+	sv = InterfacePointers::Server();
 
+	if (sv == nullptr){
+		Msg("sv is nullprt");
+	}
+	
 	SourceSDK::ModuleLoader engine_loader("engine");
 	SymbolFinder symfinder;
 
