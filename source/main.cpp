@@ -131,14 +131,14 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		// Build voice message once
 		SVC_VoiceData voiceData;
 		voiceData.m_nFromClient = cl->GetPlayerSlot();
-		voiceData.m_nLength = nBytes * 8;	// length in bits
-		voiceData.m_DataOut = data;
+		voiceData.m_nLength = bytesWritten * 8;	// length in bits
+		voiceData.m_DataOut = recompressBuffer;
 		voiceData.m_xuid = xuid;
 
 		for(int i=0; i < sv->GetClientCount(); i++)
 		{
 			IClient *pDestClient = sv->GetClient(i);
-			Msg("Player: %d", i);
+
 			bool bSelf = (pDestClient == cl);
 
 			// Only send voice to active clients
@@ -153,7 +153,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 			if ( !bHearsPlayer && !bSelf )
 				continue;	
 
-			voiceData.m_nLength = nBytes * 8;
+			voiceData.m_nLength = bytesWritten * 8;
 
 			// Is loopback enabled?
 			if( !bHearsPlayer )
