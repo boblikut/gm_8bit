@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include "audio_effects.h"
 #include <functional>
 
@@ -16,7 +17,7 @@ struct EightbitState {
 	int desampleRate = 2;
 	uint16_t port = 4000;
 	std::string ip = "127.0.0.1";
-	std::unordered_map<int, std::tuple<IVoiceCodec*, std::vector<Effect>>> afflictedPlayers;
+	std::unordered_map<int, std::tuple<IVoiceCodec*, std::vector<Effect>, std::vector<Effect>, std::unordered_set<string>>> afflictedPlayers;
 	std::unordered_map<int, std::function<void(uint16_t*, int&, std::vector<float>)>> effects_functions = {
 	    {AudioEffects::EFF_BITCRUSH, AudioEffects::BitCrush},
 	    {AudioEffects::EFF_DESAMPLE, AudioEffects::Desample},
