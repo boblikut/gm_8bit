@@ -256,21 +256,21 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 		LUA->Pop();
 	}
 	
+	LUA->PushNil();
+
+	while (LUA->Next(-2)) {
+		eff = LUA->GetNumber(-2);
 		LUA->PushNil();
-	
+		eff_args.clear();
 		while (LUA->Next(-2)) {
-			eff = LUA->GetNumber(-2);
-			LUA->PushNil();
-			eff_args.clear();
-	        while (LUA->Next(-2)) {
-	            eff_args.push_back(LUA->GetNumber(-1));
-	            LUA->Pop(1);
-	        }
-	        effs.push_back({eff, eff_args});
-	        LUA->Pop(1);
+			eff_args.push_back(LUA->GetNumber(-1));
+			LUA->Pop(1);
 		}
-	
-		LUA->Pop();
+		effs.push_back({eff, eff_args});
+		LUA->Pop(1);
+	}
+
+	LUA->Pop();
 
 	auto& afflicted_players = g_eightbit->afflictedPlayers;
 	if (afflicted_players.find(id) != afflicted_players.end()) {
@@ -297,7 +297,7 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 			afflicted_players.emplace(id, std::make_tuple(codec, std::vector<Effect>{}, effs, special_players));
 		} 
 		else {
-			afflicted_players.emplace(id, std::make_tuple(codec, effs, std::vector<Effect>{}, std::unordered_set<std::string>{}));
+			//afflicted_players.emplace(id, std::make_tuple(codec, effs, std::vector<Effect>{}, std::unordered_set<std::string>{}));
 		}	
 	}
 	return 0;
