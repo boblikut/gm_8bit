@@ -244,7 +244,7 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 	LUA->Pop();
 	int top = LUA->Top();
 	
-	top = 1
+	top = 1;
 	
 	if ( top == 2 ){
 		LUA->PushNil();
