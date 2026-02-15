@@ -19,7 +19,6 @@
 #include "opus_framedecoder.h"
 #include <netmessages.h>
 #include <iserver.h>
-#include <baseclient.h>
 
 #define STEAM_PCKT_SZ sizeof(uint64_t) + sizeof(CRC32_t)
 #ifdef SYSTEM_WINDOWS
@@ -138,7 +137,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 
 		for(int i=0; i < sv->GetClientCount(); i++)
 		{
-			CBaseClient *pDestClient = (CBaseClient*)sv->GetClient(i);
+			IClient *pDestClient = sv->GetClient(i);
 			Msg("Player's index: %d, Player's SteamID %s", i, pDestClient->GetNetworkIDString());
 			bool bSelf = (pDestClient == cl);
 
