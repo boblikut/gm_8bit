@@ -47,7 +47,7 @@ static char recompressBuffer[20 * 1024];
 
 Net* net_handl = nullptr;
 EightbitState* g_eightbit = nullptr;
-IServer* sv = Server::Server();
+IServer* sv = InterfacePointers::Server();
 
 typedef void (*SV_BroadcastVoiceData)(IClient* cl, int nBytes, char* data, int64 xuid);
 Detouring::Hook detour_BroadcastVoiceData;
