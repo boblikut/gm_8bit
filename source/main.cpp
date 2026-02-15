@@ -244,6 +244,8 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 	LUA->Pop();
 	int top = LUA->Top();
 	
+	top = 1
+	
 	if ( top == 2 ){
 		LUA->PushNil();
 		
@@ -271,7 +273,7 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 	}
 
 	LUA->Pop();
-/*
+
 	auto& afflicted_players = g_eightbit->afflictedPlayers;
 	if (afflicted_players.find(id) != afflicted_players.end()) {
 		if (effs.size() == 0 || effs.at(0).eff_id == AudioEffects::EFF_NONE) {
@@ -300,7 +302,6 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 			afflicted_players.emplace(id, std::make_tuple(codec, effs, std::vector<Effect>{}, std::unordered_set<std::string>{}));
 		}	
 	}
-*/
 	return 0;
 }
 
