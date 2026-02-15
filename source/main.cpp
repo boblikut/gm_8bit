@@ -292,7 +292,7 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 	else if(effs.size() > 0 && effs.at(0).eff_id != AudioEffects::EFF_NONE) {
 		IVoiceCodec* codec = new SteamOpus::Opus_FrameDecoder();
 		codec->Init(5, 24000);
-		if (top == 2){
+		if (top == 3){
 			afflicted_players.emplace(id, std::make_tuple(codec, std::vector<Effect>{}, effs, special_players));
 		} 
 		else {
