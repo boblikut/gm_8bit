@@ -121,7 +121,6 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		std::vector<Effect> effs_default = std::get<1>(afflicted_players.at(uid));
 		std::vector<Effect> effs_special = std::get<2>(afflicted_players.at(uid));
 		std::unordered_map<int, std::function<void(uint16_t*, int&, std::vector<float>)>> eff_funcs = g_eightbit->effects_functions;
-		int samples_special;
 
 		//effect special for selected players
 		if (effs_special.size() > 0){
@@ -168,8 +167,8 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		std::unordered_set<std::string> special_players = std::get<3>(afflicted_players.at(uid));
 
 		//we don't did any manipulations with recompressBuffer so just set voice data without any effects
-		if (effs_deafult.size() <= 0){
-			recompressBuffer = data;
+		if (effs_default.size() <= 0){
+			std::memcpy(recompressBuffer, data, nBytes);
 		}
 		
 		for(int i=0; i < sv->GetClientCount(); i++)
@@ -254,11 +253,11 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 	int top = LUA->Top();
 
 	//Protect from crash if get incorect arguments from LUA
-	LUA->CheckType(1, Type::Number); //always uid
+	LUA->CheckType(1, GarrysMod::Lua::Type::Number); //always uid
 	if (top > 1) {
-		LUA->CheckType(2, Type::Table); // top = 2 then default effect, top = 3 then special effect
+		LUA->CheckType(2, GarrysMod::Lua::Type::Table); // top = 2 then default effect, top = 3 then special effect
 		if (top > 2) {
-			LUA->CheckType(3, Type::Table); //special players
+			LUA->CheckType(3, GarrysMod::Lua::Type::Table); //special players
 		}
 	}
 
