@@ -266,11 +266,13 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 	std::unordered_set<std::string> special_players;
 	int eff;
 	int id = LUA->GetNumber(1);
+	auto& afflicted_players = g_eightbit->afflictedPlayers;
 	
 	if (top == 1){
 		IVoiceCodec* codec = std::get<0>(afflicted_players.at(id));
 		delete codec;
 		afflicted_players.erase(id);
+		return 0;
 	}
 	
 	if ( top == 3 ){
@@ -300,7 +302,7 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 
 	LUA->Pop();
 
-	auto& afflicted_players = g_eightbit->afflictedPlayers;
+	
 	if (afflicted_players.find(id) != afflicted_players.end()) {
 		if (top == 3){
 			std::get<2>(afflicted_players.at(id)) = effs;
