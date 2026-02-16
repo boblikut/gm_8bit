@@ -118,8 +118,8 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		if (effs_special.size() > 0){
 			strcpy(decompressedBuffer_special, decompressedBuffer);
 			samples_special = samples;
-			for (int i = 0; i < effs_default.size(); i++){
-				Effect eff = effs_default.at(i);
+			for (int i = 0; i < effs_special.size(); i++){
+				Effect eff = effs_special.at(i);
 				eff_funcs[eff.eff_id]((uint16_t*)&decompressedBuffer_special, samples_special, eff.eff_args);
 			}
 		}
