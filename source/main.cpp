@@ -1,6 +1,7 @@
 #define NO_MALLOC_OVERRIDE
 
 #include <GarrysMod/Lua/Interface.h>
+#include <GarrysMod/Lua/Types.h>
 #include <GarrysMod/FactoryLoader.hpp>
 #include <GarrysMod/InterfacePointers.hpp>
 #include <scanning/symbolfinder.hpp>
@@ -250,12 +251,28 @@ LUA_FUNCTION_STATIC(eightbit_setdesamplerate) {
 }
 
 LUA_FUNCTION_STATIC(eightbit_enableEffect) {
+	int top = LUA->Top();
+
+	//Protect from crash if get incorect arguments from LUA
+	LUA->CheckType(1, Type::Number); //always uid
+	if (top > 1) {
+		LUA->CheckType(2, Type::Table); // top = 2 then default effect, top = 3 then special effect
+		if (top > 2) {
+			LUA->CheckType(3, Type::Table); //special players
+		}
+	}
+
 	std::vector<Effect> effs;
 	std::vector<float> eff_args;
 	std::unordered_set<std::string> special_players;
 	int eff;
 	int id = LUA->GetNumber(1);
-	int top = LUA->Top();
+	
+	if (top == 1){
+		IVoiceCodec* codec = std::get<0>(afflicted_players.at(id));
+		delete codec;
+		afflicted_players.erase(id);
+	}
 	
 	if ( top == 3 ){
 		LUA->PushNil();
@@ -286,19 +303,12 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 
 	auto& afflicted_players = g_eightbit->afflictedPlayers;
 	if (afflicted_players.find(id) != afflicted_players.end()) {
-		if (effs.size() == 0 || effs.at(0).eff_id == AudioEffects::EFF_NONE) {
-			IVoiceCodec* codec = std::get<0>(afflicted_players.at(id));
-			delete codec;
-			afflicted_players.erase(id);
-		}
+		if (top == 3){
+			std::get<2>(afflicted_players.at(id)) = effs;
+			std::get<3>(afflicted_players.at(id)) = special_players;
+		} 
 		else {
-			if (top == 3){
-				std::get<2>(afflicted_players.at(id)) = effs;
-				std::get<3>(afflicted_players.at(id)) = special_players;
-			} 
-			else {
-				std::get<1>(afflicted_players.at(id)) = effs;
-			}
+			std::get<1>(afflicted_players.at(id)) = effs;
 		}
 		return 0;
 	}
