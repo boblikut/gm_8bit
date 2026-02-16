@@ -165,16 +165,17 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 
 		//getting players that need a special effect(their SteamID's)
 		std::unordered_set<std::string> special_players = std::get<3>(afflicted_players.at(uid));
-
-		//we don't did any manipulations with recompressBuffer so just set voice data without any effects
-		if (effs_default.size() <= 0){
-			std::memcpy(recompressBuffer, data, nBytes);
-		}
 		
 		for(int i=0; i < sv->GetClientCount(); i++)
 		{
 			voiceData.m_nLength = bytesWritten * 8;	// length in bits
-			voiceData.m_DataOut = recompressBuffer;
+			if ( effs_default.size() > 0 ) {
+				voiceData.m_DataOut = recompressBuffer;
+			}
+			else
+			{
+				voiceData.m_DataOut = data;
+			}
 			
 			IClient *pDestClient = sv->GetClient(i);
 			
