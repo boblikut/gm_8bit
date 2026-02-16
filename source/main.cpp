@@ -92,6 +92,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 
 	if (afflicted_players.find(uid) != afflicted_players.end()) {
 		IVoiceCodec* codec = std::get<0>(afflicted_players.at(uid));
+		IVoiceCodec* codec_special = std::get<4>(afflicted_players.at(uid));
 
 		if(nBytes < STEAM_PCKT_SZ) {
 			return detour_BroadcastVoiceData.GetTrampoline<SV_BroadcastVoiceData>()(cl, nBytes, data, xuid);
@@ -99,6 +100,13 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 
 		int bytesDecompressed = SteamVoice::DecompressIntoBuffer(codec, data, nBytes, decompressedBuffer, sizeof(decompressedBuffer));
 		int samples = bytesDecompressed / 2;
+		if (bytesDecompressed <= 0) {
+			//Just hit the trampoline at this point.
+			return detour_BroadcastVoiceData.GetTrampoline<SV_BroadcastVoiceData>()(cl, nBytes, data, xuid);
+		}
+
+		bytesDecompressed = SteamVoice::DecompressIntoBuffer(codec_special, data, nBytes, decompressedBuffer_special, sizeof(decompressedBuffer));
+		int samples_special = bytesDecompressed / 2;
 		if (bytesDecompressed <= 0) {
 			//Just hit the trampoline at this point.
 			return detour_BroadcastVoiceData.GetTrampoline<SV_BroadcastVoiceData>()(cl, nBytes, data, xuid);
@@ -116,8 +124,6 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 
 		//effect special for selected players
 		if (effs_special.size() > 0){
-			std::memcpy(decompressedBuffer_special, decompressedBuffer, bytesDecompressed);
-			samples_special = samples;
 			for (int i = 0; i < effs_special.size(); i++){
 				Effect eff = effs_special.at(i);
 				eff_funcs[eff.eff_id]((uint16_t*)&decompressedBuffer_special, samples_special, eff.eff_args);
@@ -140,7 +146,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		}
 		int bytesWritten_special;
 		if (effs_special.size() > 0){
-			bytesWritten_special = SteamVoice::CompressIntoBuffer(steamid, codec, decompressedBuffer_special, samples_special*2, recompressBuffer_special, sizeof(recompressBuffer_special), 24000);
+			bytesWritten_special = SteamVoice::CompressIntoBuffer(steamid, codec_special, decompressedBuffer_special, samples_special*2, recompressBuffer_special, sizeof(recompressBuffer_special), 24000);
 		}
 
 		#ifdef _DEBUG
@@ -159,6 +165,11 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 
 		//getting players that need a special effect(their SteamID's)
 		std::unordered_set<std::string> special_players = std::get<3>(afflicted_players.at(uid));
+
+		//we don't did any manipulations with recompressBuffer so just set voice data without any effects
+		if (effs_deafult.size() <= 0){
+			recompressBuffer = data;
+		}
 		
 		for(int i=0; i < sv->GetClientCount(); i++)
 		{
@@ -191,7 +202,6 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 			}
 
 			if( special_players.count( pDestClient->GetNetworkIDString() ) ){
-				Msg("%s is hearing special effect\n", pDestClient->GetNetworkIDString());
 				voiceData.m_nLength = bytesWritten_special * 8;
 				voiceData.m_DataOut = recompressBuffer_special;
 			}
@@ -295,11 +305,13 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 	else if(effs.size() > 0 && effs.at(0).eff_id != AudioEffects::EFF_NONE) {
 		IVoiceCodec* codec = new SteamOpus::Opus_FrameDecoder();
 		codec->Init(5, 24000);
+		IVoiceCodec* codec_special = new SteamOpus::Opus_FrameDecoder();
+		codec_special->Init(5, 24000);
 		if (top == 3){
-			afflicted_players.emplace(id, std::make_tuple(codec, std::vector<Effect>{}, effs, special_players));
+			afflicted_players.emplace(id, std::make_tuple(codec, std::vector<Effect>{}, effs, special_players, codec_special));
 		} 
 		else {
-			afflicted_players.emplace(id, std::make_tuple(codec, effs, std::vector<Effect>{}, std::unordered_set<std::string>{}));
+			afflicted_players.emplace(id, std::make_tuple(codec, effs, std::vector<Effect>{}, std::unordered_set<std::string>{}, codec_special));
 		}	
 	}
 	
