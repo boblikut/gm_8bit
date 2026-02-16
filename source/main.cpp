@@ -247,7 +247,6 @@ LUA_FUNCTION_STATIC(eightbit_enableEffect) {
 		LUA->PushNil();
 		
 		while (LUA->Next(-2)) {
-			LUA->PushNil();
 			special_players.insert(LUA->GetString(-1));
 	        LUA->Pop(1);
 		}
