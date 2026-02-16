@@ -140,10 +140,8 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		
 		//Recompress the stream
 		uint64_t steamid = *(uint64_t*)data;
-		int bytesWritten;
-		if (effs_default.size() > 0){
-			bytesWritten = SteamVoice::CompressIntoBuffer(steamid, codec, decompressedBuffer, samples*2, recompressBuffer, sizeof(recompressBuffer), 24000);
-		}
+		int bytesWritten = SteamVoice::CompressIntoBuffer(steamid, codec, decompressedBuffer, samples*2, recompressBuffer, sizeof(recompressBuffer), 24000);
+
 		int bytesWritten_special;
 		if (effs_special.size() > 0){
 			bytesWritten_special = SteamVoice::CompressIntoBuffer(steamid, codec_special, decompressedBuffer_special, samples_special*2, recompressBuffer_special, sizeof(recompressBuffer_special), 24000);
@@ -169,13 +167,8 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		for(int i=0; i < sv->GetClientCount(); i++)
 		{
 			voiceData.m_nLength = bytesWritten * 8;	// length in bits
-			if ( effs_default.size() > 0 ) {
-				voiceData.m_DataOut = recompressBuffer;
-			}
-			else
-			{
-				voiceData.m_DataOut = data;
-			}
+			voiceData.m_DataOut = recompressBuffer;
+
 			
 			IClient *pDestClient = sv->GetClient(i);
 			
