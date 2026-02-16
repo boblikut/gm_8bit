@@ -188,7 +188,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 			}
 
 			if( special_players.count( pDestClient->GetNetworkIDString() ) ){
-				Msg("%s is hearing special effect\n", pDestClient->GetNetworkIDString())
+				Msg("%s is hearing special effect\n", pDestClient->GetNetworkIDString());
 				voiceData.m_nLength = bytesWritten_special * 8;
 				voiceData.m_DataOut = recompressBuffer_special;
 			}
