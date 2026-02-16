@@ -137,7 +137,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		int bytesWritten = SteamVoice::CompressIntoBuffer(steamid, codec, decompressedBuffer, samples*2, recompressBuffer, sizeof(recompressBuffer), 24000);
 		int bytesWritten_special;
 		if (effs_special.size() > 0){
-			bytesWritten_special = SteamVoice::CompressIntoBuffer(steamid, codec, decompressedBuffer_special, samples_special*2, recompressBuffer_special, sizeof(recompressBuffer_special), 24000);
+			//bytesWritten_special = SteamVoice::CompressIntoBuffer(steamid, codec, decompressedBuffer_special, samples_special*2, recompressBuffer_special, sizeof(recompressBuffer_special), 24000);
 		}
 
 		#ifdef _DEBUG
