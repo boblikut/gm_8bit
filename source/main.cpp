@@ -116,7 +116,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 
 		//effect special for selected players
 		if (effs_special.size() > 0){
-			strcpy(decompressedBuffer_special, decompressedBuffer);
+			std::memcpy(decompressedBuffer_special, decompressedBuffer, bytesDecompressed);
 			samples_special = samples;
 			for (int i = 0; i < effs_special.size(); i++){
 				Effect eff = effs_special.at(i);
@@ -188,6 +188,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 			}
 
 			if( special_players.count( pDestClient->GetNetworkIDString() ) ){
+				Msg("%s is hearing special effect\n", pDestClient->GetNetworkIDString())
 				voiceData.m_nLength = bytesWritten_special * 8;
 				voiceData.m_DataOut = recompressBuffer_special;
 			}
