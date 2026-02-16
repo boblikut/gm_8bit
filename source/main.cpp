@@ -134,18 +134,10 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		
 		//Recompress the stream
 		uint64_t steamid = *(uint64_t*)data;
-		int bytesWritten;
+		int bytesWritten = SteamVoice::CompressIntoBuffer(steamid, codec, decompressedBuffer, samples*2, recompressBuffer, sizeof(recompressBuffer), 24000);
 		int bytesWritten_special;
-		if (effs_special.size() > 0 && effs_default.size() > 0){
-			IVoiceCodec codec_special = codec;
-			bytesWritten = SteamVoice::CompressIntoBuffer(steamid, codec, decompressedBuffer, samples*2, recompressBuffer, sizeof(recompressBuffer), 24000);
-			bytesWritten_special = SteamVoice::CompressIntoBuffer(steamid, &codec_special, decompressedBuffer_special, samples_special*2, recompressBuffer_special, sizeof(recompressBuffer_special), 24000);
-		} 
-		else if (effs_special.size() > 0) {
-			bytesWritten_special = SteamVoice::CompressIntoBuffer(steamid, codec_special, decompressedBuffer_special, samples_special*2, recompressBuffer_special, sizeof(recompressBuffer_special), 24000);
-		} 
-		else {
-			bytesWritten = SteamVoice::CompressIntoBuffer(steamid, codec, decompressedBuffer, samples*2, recompressBuffer, sizeof(recompressBuffer), 24000);
+		if (effs_special.size() > 0){
+			bytesWritten_special = SteamVoice::CompressIntoBuffer(steamid, codec, decompressedBuffer_special, samples_special*2, recompressBuffer_special, sizeof(recompressBuffer_special), 24000);
 		}
 
 		#ifdef _DEBUG
