@@ -116,8 +116,8 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 
 		//effect special for selected players
 		if (effs_special.size() > 0){
-			std::memcpy(decompressedBuffer_special, decompressedBuffer, bytesDecompressed);
-			samples_special = samples;
+			int bytesDecompressed_special = SteamVoice::DecompressIntoBuffer(codec, data, nBytes, decompressedBuffer_special, sizeof(decompressedBuffer_special));
+			samples_special = bytesDecompressed_special / 2;
 			for (int i = 0; i < effs_special.size(); i++){
 				Effect eff = effs_special.at(i);
 				eff_funcs[eff.eff_id]((uint16_t*)&decompressedBuffer_special, samples_special, eff.eff_args);
