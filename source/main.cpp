@@ -116,7 +116,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 
 		//effect special for selected players
 		if (effs_special.size() > 0){
-			std::memcpy(decompressedBuffer_special, decompressedBuffer, bytesDecompressed);
+			std::memcpy(decompressedBuffer_special, decompressedBuffer, sizeof(decompressedBuffer));
 			samples_special = samples;
 			for (int i = 0; i < effs_special.size(); i++){
 				Effect eff = effs_special.at(i);
